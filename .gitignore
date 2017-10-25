@@ -1,0 +1,26 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, build with `go test -c`
+*.test
+# Test report generated during CI test runs
+json-report.txt
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+bin
+.idea
+.vscode
+vendor
+go.sum
+
+#Mac users
+.DS_Store
+
+debug
+
