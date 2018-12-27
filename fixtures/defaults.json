@@ -1,6 +1,6 @@
 {
-  "$schema": "http:\/\/json-schema.org\/draft-04\/schema#",
-  "$ref": "#\/definitions\/TestUser",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$ref": "#/definitions/TestUser",
   "definitions": {
     "GrandfatherType": {
       "required": [
@@ -8,6 +8,38 @@
       ],
       "properties": {
         "family_name": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "OneOfTypeVariant1": {
+      "required": [
+        "Type",
+        "SomeIntValue"
+      ],
+      "properties": {
+        "SomeIntValue": {
+          "type": "integer"
+        },
+        "Type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "OneOfTypeVariant2": {
+      "required": [
+        "Type",
+        "SomeStringValue"
+      ],
+      "properties": {
+        "SomeStringValue": {
+          "type": "string"
+        },
+        "Type": {
           "type": "string"
         }
       },
@@ -23,7 +55,8 @@
         "name",
         "TestFlag",
         "age",
-        "email"
+        "email",
+        "one_of"
       ],
       "properties": {
         "SomeUntaggedBaseProperty": {
@@ -32,20 +65,20 @@
         "TestFlag": {
           "type": "boolean"
         },
-        "age":{
+        "age": {
           "maximum": 120,
-          "minimum": 18,
           "exclusiveMaximum": true,
+          "minimum": 18,
           "exclusiveMinimum": true,
           "type": "integer"
-        },  
-        "email": {
-          "type": "string",
-          "format": "email"
         },
         "birth_date": {
           "type": "string",
           "format": "date-time"
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
         },
         "feeling": {
           "oneOf": [
@@ -64,20 +97,32 @@
           "type": "array"
         },
         "grand": {
-          "$schema": "http:\/\/json-schema.org\/draft-04\/schema#",
-          "$ref": "#\/definitions\/GrandfatherType"
+          "$schema": "http://json-schema.org/draft-04/schema#",
+          "$ref": "#/definitions/GrandfatherType"
         },
         "id": {
           "type": "integer"
         },
         "name": {
-          "type": "string",
           "maxLength": 20,
-          "minLength": 1
+          "minLength": 1,
+          "type": "string"
         },
         "network_address": {
           "type": "string",
           "format": "ipv4"
+        },
+        "one_of": {
+          "oneOf": [
+            {
+              "$schema": "http://json-schema.org/draft-04/schema#",
+              "$ref": "#/definitions/OneOfTypeVariant1"
+            },
+            {
+              "$schema": "http://json-schema.org/draft-04/schema#",
+              "$ref": "#/definitions/OneOfTypeVariant2"
+            }
+          ]
         },
         "photo": {
           "type": "string",
