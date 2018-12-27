@@ -153,7 +153,12 @@ type protoEnum interface {
 	EnumDescriptor() ([]byte, []int)
 }
 
+type implicitOneOf interface {
+	OneOf() []interface{}
+}
+
 var protoEnumType = reflect.TypeOf((*protoEnum)(nil)).Elem()
+var implicitOneOfType = reflect.TypeOf((*implicitOneOf)(nil)).Elem()
 
 func (r *Reflector) reflectTypeToSchema(definitions Definitions, t reflect.Type) *Type {
 	// Already added to definitions?
@@ -163,11 +168,34 @@ func (r *Reflector) reflectTypeToSchema(definitions Definitions, t reflect.Type)
 
 	// jsonpb will marshal protobuf enum options as either strings or integers.
 	// It will unmarshal either.
-	if t.Implements(protoEnumType) {
+	//if t.Implements(protoEnumType) {
+	//	return &Type{OneOf: []*Type{
+	//		{Type: "string"},
+	//		{Type: "integer"},
+	//	}}
+	//}
+
+	switch true {
+	case t.Implements(protoEnumType):
 		return &Type{OneOf: []*Type{
 			{Type: "string"},
 			{Type: "integer"},
 		}}
+
+	case t.Implements(implicitOneOfType):
+		// create
+		variants := reflect.Zero(t).
+			Interface().(implicitOneOf).OneOf()
+
+		oneOf := make([]*Type, len(variants))
+
+		for idx, variant := range variants {
+			vType := reflect.TypeOf(variant)
+			oneOf[idx] = r.reflectTypeToSchema(definitions, vType)
+		}
+		return &Type{
+			OneOf: oneOf,
+		}
 	}
 
 	// Defined format types for JSON Schema Validation

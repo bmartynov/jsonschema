@@ -12,6 +12,33 @@ import (
 	"time"
 )
 
+type OneOfTypeVariant1 struct {
+	Type         string
+	SomeIntValue int
+}
+
+func (o *OneOfTypeVariant2) variant() {}
+
+type OneOfTypeVariant2 struct {
+	Type            string
+	SomeStringValue string
+}
+
+func (o *OneOfTypeVariant1) variant() {}
+
+type OneOfType struct {
+	Variant interface {
+		variant()
+	}
+}
+
+func (o *OneOfType) OneOf() []interface{} {
+	return []interface{}{
+		&OneOfTypeVariant1{},
+		&OneOfTypeVariant2{},
+	}
+}
+
 type GrandfatherType struct {
 	FamilyName string `json:"family_name" jsonschema:"required"`
 }
@@ -65,9 +92,10 @@ type TestUser struct {
 	Photo []byte `json:"photo,omitempty" jsonschema:"required"`
 
 	// Tests for jsonpb enum support
-	Feeling ProtoEnum `json:"feeling,omitempty"`
-	Age     int       `json:"age" jsonschema:"minimum=18,maximum=120,exclusiveMaximum=true,exclusiveMinimum=true"`
-	Email   string    `json:"email" jsonschema:"format=email"`
+	Feeling ProtoEnum  `json:"feeling,omitempty"`
+	Age     int        `json:"age" jsonschema:"minimum=18,maximum=120,exclusiveMaximum=true,exclusiveMinimum=true"`
+	Email   string     `json:"email" jsonschema:"format=email"`
+	OneOf   *OneOfType `json:"one_of"`
 }
 
 var schemaGenerationTests = []struct {
@@ -78,6 +106,24 @@ var schemaGenerationTests = []struct {
 	{&Reflector{AllowAdditionalProperties: true}, "fixtures/allow_additional_props.json"},
 	{&Reflector{RequiredFromJSONSchemaTags: true}, "fixtures/required_from_jsontags.json"},
 	{&Reflector{ExpandedStruct: true}, "fixtures/defaults_expanded_toplevel.json"},
+}
+
+func TestSchemaOneOf(t *testing.T) {
+	reflector := &Reflector{}
+
+	schema := reflector.Reflect(&OneOfType{})
+
+	if _, ok := schema.Definitions["OneOfTypeVariant1"]; !ok {
+		t.Fatal("OneOfTypeVariant1 definition missed from schema")
+	}
+
+	if _, ok := schema.Definitions["OneOfTypeVariant2"]; !ok {
+		t.Fatal("OneOfTypeVariant2 definition missed from schema")
+	}
+
+	if len(schema.OneOf) != 2 {
+		t.Fatal("count schema one of must be equal 2")
+	}
 }
 
 func TestSchemaGeneration(t *testing.T) {
