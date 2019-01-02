@@ -157,23 +157,66 @@ type implicitOneOf interface {
 	OneOf() []interface{}
 }
 
+type implicitAnyOf interface {
+	AnyOf() []interface{}
+}
+
+type implicitAllOf interface {
+	AllOf() []interface{}
+}
+
 var protoEnumType = reflect.TypeOf((*protoEnum)(nil)).Elem()
 var implicitOneOfType = reflect.TypeOf((*implicitOneOf)(nil)).Elem()
+var implicitAnyOfType = reflect.TypeOf((*implicitAnyOf)(nil)).Elem()
+var implicitAllOfType = reflect.TypeOf((*implicitAllOf)(nil)).Elem()
+
+func (r *Reflector) reflectOneOf(definitions Definitions, t reflect.Type) *Type {
+	variants := reflect.Zero(t).
+		Interface().(implicitOneOf).OneOf()
+
+	oneOf := make([]*Type, len(variants))
+
+	for idx, variant := range variants {
+		oneOf[idx] = r.reflectTypeToSchema(definitions,
+			reflect.TypeOf(variant))
+	}
+
+	return &Type{OneOf: oneOf}
+}
+
+func (r *Reflector) reflectAnyOf(definitions Definitions, t reflect.Type) *Type {
+	variants := reflect.Zero(t).
+		Interface().(implicitAnyOf).AnyOf()
+
+	anyOf := make([]*Type, len(variants))
+
+	for idx, variant := range variants {
+		anyOf[idx] = r.reflectTypeToSchema(definitions,
+			reflect.TypeOf(variant))
+	}
+
+	return &Type{AnyOf: anyOf}
+}
+
+func (r *Reflector) reflectAllOff(definitions Definitions, t reflect.Type) *Type {
+	variants := reflect.Zero(t).
+		Interface().(implicitAllOf).AllOf()
+
+	allOf := make([]*Type, len(variants))
+
+	for idx, variant := range variants {
+		allOf[idx] = r.reflectTypeToSchema(definitions,
+			reflect.TypeOf(variant))
+	}
+
+	return &Type{AllOf: allOf}
+}
 
 func (r *Reflector) reflectTypeToSchema(definitions Definitions, t reflect.Type) *Type {
 	// Already added to definitions?
 	if _, ok := definitions[t.Name()]; ok {
 		return &Type{Ref: "#/definitions/" + t.Name()}
 	}
-
-	// jsonpb will marshal protobuf enum options as either strings or integers.
-	// It will unmarshal either.
-	//if t.Implements(protoEnumType) {
-	//	return &Type{OneOf: []*Type{
-	//		{Type: "string"},
-	//		{Type: "integer"},
-	//	}}
-	//}
 
 	switch true {
 	case t.Implements(protoEnumType):
@@ -183,19 +226,13 @@ func (r *Reflector) reflectTypeToSchema(definitions Definitions, t reflect.Type)
 		}}
 
 	case t.Implements(implicitOneOfType):
-		// create
-		variants := reflect.Zero(t).
-			Interface().(implicitOneOf).OneOf()
+		return r.reflectOneOf(definitions, t)
 
-		oneOf := make([]*Type, len(variants))
+	case t.Implements(implicitAnyOfType):
+		return r.reflectAnyOf(definitions, t)
 
-		for idx, variant := range variants {
-			vType := reflect.TypeOf(variant)
-			oneOf[idx] = r.reflectTypeToSchema(definitions, vType)
-		}
-		return &Type{
-			OneOf: oneOf,
-		}
+	case t.Implements(implicitAllOfType):
+		return r.reflectAllOff(definitions, t)
 	}
 
 	// Defined format types for JSON Schema Validation
