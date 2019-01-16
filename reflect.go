@@ -169,11 +169,16 @@ type implicit interface {
 	ImplicitType() interface{}
 }
 
+type implicitEnum interface {
+	ImplicitEnum() []interface{}
+}
+
 var protoEnumType = reflect.TypeOf((*protoEnum)(nil)).Elem()
 var implicitOneOfType = reflect.TypeOf((*implicitOneOf)(nil)).Elem()
 var implicitAnyOfType = reflect.TypeOf((*implicitAnyOf)(nil)).Elem()
 var implicitAllOfType = reflect.TypeOf((*implicitAllOf)(nil)).Elem()
 var implicitType = reflect.TypeOf((*implicit)(nil)).Elem()
+var implicitEnumType = reflect.TypeOf((*implicitEnum)(nil)).Elem()
 
 func (r *Reflector) reflectOneOf(definitions Definitions, t reflect.Type) *Type {
 	variants := reflect.Zero(t).
@@ -210,6 +215,18 @@ func (r *Reflector) implicitType(definitions Definitions, t reflect.Type) *Type 
 	return r.reflectTypeToSchema(definitions, reflect.TypeOf(typ))
 }
 
+func (r *Reflector) implicitEnum(definitions Definitions, t reflect.Type) *Type {
+	variants := reflect.Zero(t).
+		Interface().(implicitEnum).ImplicitEnum()
+
+	typ := r.reflectStruct(definitions, reflect.TypeOf(variants[0]))
+
+	typ.Enum = variants
+
+
+	return typ
+}
+
 func (r *Reflector) reflectAllOff(definitions Definitions, t reflect.Type) *Type {
 	variants := reflect.Zero(t).
 		Interface().(implicitAllOf).AllOf()
@@ -231,6 +248,9 @@ func (r *Reflector) reflectTypeToSchema(definitions Definitions, t reflect.Type)
 	}
 
 	switch true {
+	case t.Implements(implicitType):
+		return r.implicitType(definitions, t)
+
 	case t.Implements(protoEnumType):
 		return &Type{OneOf: []*Type{
 			{Type: "string"},
@@ -245,8 +265,9 @@ func (r *Reflector) reflectTypeToSchema(definitions Definitions, t reflect.Type)
 
 	case t.Implements(implicitAllOfType):
 		return r.reflectAllOff(definitions, t)
-	case t.Implements(implicitType):
-		return r.implicitType(definitions, t)
+
+	case t.Implements(implicitEnumType):
+		return r.implicitEnum(definitions, t)
 	}
 
 	// Defined format types for JSON Schema Validation
