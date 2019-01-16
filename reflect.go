@@ -219,7 +219,9 @@ func (r *Reflector) implicitEnum(definitions Definitions, t reflect.Type) *Type 
 	variants := reflect.Zero(t).
 		Interface().(implicitEnum).ImplicitEnum()
 
-	typ := r.reflectStruct(definitions, reflect.TypeOf(variants[0]))
+	// TODO: refactor
+	typ := &Type{Type:"string"}
+
 
 	typ.Enum = variants
 
