@@ -165,10 +165,15 @@ type implicitAllOf interface {
 	AllOf() []interface{}
 }
 
+type implicit interface {
+	ImplicitType() interface{}
+}
+
 var protoEnumType = reflect.TypeOf((*protoEnum)(nil)).Elem()
 var implicitOneOfType = reflect.TypeOf((*implicitOneOf)(nil)).Elem()
 var implicitAnyOfType = reflect.TypeOf((*implicitAnyOf)(nil)).Elem()
 var implicitAllOfType = reflect.TypeOf((*implicitAllOf)(nil)).Elem()
+var implicitType = reflect.TypeOf((*implicit)(nil)).Elem()
 
 func (r *Reflector) reflectOneOf(definitions Definitions, t reflect.Type) *Type {
 	variants := reflect.Zero(t).
@@ -196,6 +201,13 @@ func (r *Reflector) reflectAnyOf(definitions Definitions, t reflect.Type) *Type 
 	}
 
 	return &Type{AnyOf: anyOf}
+}
+
+func (r *Reflector) implicitType(definitions Definitions, t reflect.Type) *Type {
+	typ := reflect.Zero(t).
+		Interface().(implicit).ImplicitType()
+
+	return r.reflectTypeToSchema(definitions, reflect.TypeOf(typ))
 }
 
 func (r *Reflector) reflectAllOff(definitions Definitions, t reflect.Type) *Type {
@@ -233,6 +245,8 @@ func (r *Reflector) reflectTypeToSchema(definitions Definitions, t reflect.Type)
 
 	case t.Implements(implicitAllOfType):
 		return r.reflectAllOff(definitions, t)
+	case t.Implements(implicitType):
+		return r.implicitType(definitions, t)
 	}
 
 	// Defined format types for JSON Schema Validation
@@ -284,6 +298,7 @@ func (r *Reflector) reflectTypeToSchema(definitions Definitions, t reflect.Type)
 		}
 
 	case reflect.Interface:
+		//return r.reflectTypeToSchema(definitions, reflect.Zero(t.Elem()).Elem().Type())
 		return &Type{
 			Type:                 "object",
 			AdditionalProperties: []byte("true"),
