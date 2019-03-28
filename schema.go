@@ -2,12 +2,13 @@ package jsonschema
 
 import (
 	"encoding/json"
+	"fmt"
 )
 
 // Version is the JSON Schema version.
 // If extending JSON Schema with custom values use a custom URI.
 // RFC draft-wright-json-schema-00, section 6
-var Version = "http://json-schema.org/draft-04/schema#"
+var Version = "http://json-schema.org/draft-07/schema#"
 
 // Definitions hold schema definitions.
 // http://json-schema.org/latest/json-schema-validation.html#rfc.section.5.26
@@ -62,4 +63,21 @@ type Type struct {
 	// RFC draft-wright-json-schema-hyperschema-00, section 4
 	Media          *Type  `json:"media,omitempty"`          // section 4.3
 	BinaryEncoding string `json:"binaryEncoding,omitempty"` // section 4.3
+	// RFC http://json-schema.org/draft-07/json-schema-validation.html#general
+	If   *Type `json:"if,omitempty,omitempty"`
+	Then *Type `json:"then,omitempty,omitempty"`
+	Else *Type `json:"else,omitempty,omitempty"`
+}
+
+func newReference(typ string) *Type {
+	return &Type{Ref: fmt.Sprintf("#/definitions/%s", typ)}
+}
+
+func newType(typ string) *Type {
+	return &Type{
+		Type:         typ,
+		Properties:   map[string]*Type{},
+		Definitions:  map[string]*Type{},
+		Dependencies: map[string]*Type{},
+	}
 }

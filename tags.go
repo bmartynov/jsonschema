@@ -2,7 +2,9 @@ package jsonschema
 
 import (
 	"reflect"
+	"regexp"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -11,21 +13,50 @@ const (
 	tagTitle    = "title"
 	tagRequired = "required"
 	tagIgnore   = "ignore"
+
 	// string
 	tagStringMinLength = "minLength"
 	tagStringMaxLength = "maxLength"
 	tagStringFormat    = "format"
+
 	// number
 	tagNumberMultipleOf       = "multipleOf"
 	tagNumberMinimum          = "minimum"
 	tagNumberMaximum          = "maximum"
 	tagNumberExclusiveMaximum = "exclusiveMaximum"
 	tagNumberExclusiveMinimum = "exclusiveMinimum"
+
 	// array
 	tagArrayMinItems    = "minItems"
 	tagArrayMaxItems    = "maxItems"
 	tagArrayUniqueItems = "uniqueItems"
+
+	// conditions
+	tagConditionShowIf = "show_if"
+	tagConditionHideIf = "hide_if"
 )
+
+var exprRegexp = regexp.MustCompile("([a-z]+)(=|<|>|<=|>=)([a-z]+)")
+
+type expression struct {
+	Option    string
+	Operation string
+	Value     string
+}
+
+func parseExpression(t tags) *expression {
+	if t.showIf != "" {
+		parts := exprRegexp.FindStringSubmatch(t.showIf)
+
+		return &expression{
+			Option:    parts[1],
+			Operation: parts[2],
+			Value:     parts[3],
+		}
+	}
+
+	return nil
+}
 
 type tags struct {
 	name     string
@@ -46,6 +77,9 @@ type tags struct {
 	minItems    int
 	maxItems    int
 	uniqueItems bool
+
+	showIf string
+	hideIf string
 }
 
 func parseTags(tag reflect.StructTag) tags {
@@ -53,7 +87,8 @@ func parseTags(tag reflect.StructTag) tags {
 
 	var ok bool
 	if t.name, ok = tag.Lookup(tagName); !ok {
-		t.name = tag.Get(tagNameJson)
+		parts := strings.Split(tag.Get(tagNameJson), ",")
+		t.name = parts[0]
 	}
 
 	t.title = tag.Get(tagTitle)
@@ -77,6 +112,10 @@ func parseTags(tag reflect.StructTag) tags {
 	t.maxItems, _ = strconv.Atoi(tag.Get(tagArrayMaxItems))
 	t.uniqueItems, _ = strconv.ParseBool(tag.Get(tagArrayUniqueItems))
 
+	// expression
+	t.showIf = tag.Get(tagConditionShowIf)
+	t.hideIf = tag.Get(tagConditionHideIf)
+
 	return t
 }
 
@@ -97,4 +136,8 @@ func applyValidation(dst *Type, t tags) {
 		dst.MaxItems = t.maxItems
 		dst.UniqueItems = t.uniqueItems
 	}
+}
+
+func applyInfo(dst *Type, t tags) {
+	dst.Title = t.title
 }
