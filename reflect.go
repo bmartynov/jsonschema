@@ -56,22 +56,20 @@ func reflectType(definitions Definitions, t reflect.Type, v reflect.Value, root 
 		return reflectURI(definitions, v)
 	}
 
-	valueType := v.Type()
-
 	switch true {
-	case valueType.Implements(typePBEnum):
+	case t.Implements(typePBEnum):
 		return reflectPBEnum(definitions, v)
 
-	case valueType.Implements(typeOneOf):
+	case t.Implements(typeOneOf):
 		return reflectOneOf(definitions, v)
 
-	case valueType.Implements(typeAnyOf):
+	case t.Implements(typeAnyOf):
 		return reflectAnyOf(definitions, v)
 
-	case valueType.Implements(typeAllOf):
+	case t.Implements(typeAllOf):
 		return reflectAllOf(definitions, v)
 
-	case valueType.Implements(typeEnum):
+	case t.Implements(typeEnum):
 		return reflectEnum(definitions, v)
 	}
 
