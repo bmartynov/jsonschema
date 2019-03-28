@@ -145,7 +145,6 @@ func reflectSlice(definition Definitions, v reflect.Value) *Type {
 	}
 
 	elemValue := reflect.New(v.Type().Elem())
-	_ = elemValue
 
 	switch v.Type() {
 	case typeByteSlice:
@@ -204,32 +203,8 @@ func reflectString(definitions Definitions, v reflect.Value) *Type {
 }
 
 func reflectInterface(definitions Definitions, t reflect.Type, v reflect.Value) *Type {
-	if !v.IsValid() {
-		v = reflect.Zero(t) // create zero value
-	}
-
-	valueType := v.Type()
-
-	switch true {
-	case valueType.Implements(typePBEnum):
-		return reflectPBEnum(definitions, v)
-
-	case valueType.Implements(typeOneOf):
-		return reflectOneOf(definitions, v)
-
-	case valueType.Implements(typeAnyOf):
-		return reflectAnyOf(definitions, v)
-
-	case valueType.Implements(typeAllOf):
-		return reflectAllOf(definitions, v)
-
-	case valueType.Implements(typeEnum):
-		return reflectEnum(definitions, v)
-
-	default:
-		return &Type{
-			Type:                 tTypeObject,
-			AdditionalProperties: []byte("true"),
-		}
+	return &Type{
+		Type:                 tTypeObject,
+		AdditionalProperties: []byte("true"),
 	}
 }
