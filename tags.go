@@ -88,6 +88,10 @@ func parseTags(tag reflect.StructTag) tags {
 	var ok bool
 	if t.name, ok = tag.Lookup(tagName); !ok {
 		parts := strings.Split(tag.Get(tagNameJson), ",")
+		if parts[0] == "-" {
+			t.ignored = true
+			return t
+		}
 		t.name = parts[0]
 	}
 

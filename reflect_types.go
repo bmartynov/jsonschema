@@ -44,15 +44,20 @@ type enumType interface {
 }
 
 func reflectTime(definition Definitions, v reflect.Value) *Type {
-	return &Type{
+	t := Type{
 		Type:   tTypeString,
 		Format: "date-time",
 	}
+
+	return &t
 }
 
 // ipv4 RFC section 7.3.4
 func reflectIP(definition Definitions, v reflect.Value) *Type {
-	return &Type{Type: tTypeString, Format: "ipv4"}
+	return &Type{
+		Type:   tTypeString,
+		Format: "ipv4",
+	}
 }
 
 // uri RFC section 7.3.6
@@ -97,6 +102,7 @@ func reflectOneOf(definition Definitions, v reflect.Value) *Type {
 	}
 
 	return &Type{
+		Type:    oneOf[0].Type,
 		OneOf:   oneOf,
 		Default: v.Interface(),
 	}
@@ -114,6 +120,7 @@ func reflectAnyOf(definition Definitions, v reflect.Value) *Type {
 	}
 
 	return &Type{
+		Type:    anyOf[0].Type,
 		AnyOf:   anyOf,
 		Default: v.Interface(),
 	}
@@ -131,6 +138,7 @@ func reflectAllOf(definition Definitions, v reflect.Value) *Type {
 	}
 
 	return &Type{
+		Type:    allOf[0].Type,
 		AllOf:   allOf,
 		Default: v.Interface(),
 	}

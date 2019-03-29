@@ -113,13 +113,31 @@ func reflectStruct(definitions Definitions, v reflect.Value) *Type {
 
 	for i := 0; i < v.NumField(); i++ {
 		structField := v.Type().Field(i)
+		structValue := v.Field(i)
+
+		// unexported field
+		if structField.PkgPath != "" {
+			continue
+		}
+
+		// embedded field
+		if structField.Anonymous {
+			typ := reflectStruct(definitions, structValue)
+			for def, info := range typ.Definitions {
+				definitions[def] = info
+			}
+
+			for def, info := range typ.Properties {
+				currentType.Properties[def] = info
+			}
+		}
 
 		tags := parseTags(structField.Tag)
 		if tags.name == "" || tags.ignored {
 			continue
 		}
 
-		fieldType := reflectType(definitions, v.Field(i).Type(), v.Field(i), false)
+		fieldType := reflectType(definitions, structField.Type, structValue, false)
 		if fieldType == nil {
 			continue
 		}
