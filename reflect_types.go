@@ -165,6 +165,12 @@ func reflectSlice(definition Definitions, v reflect.Value) *Type {
 		returnType.Items = reflectType(definition, elemValue.Type(), elemValue, false)
 	}
 
+	defaults := make([]interface{}, 0)
+	for i := 0; i < v.Len(); i++ {
+		defaults = append(defaults, v.Index(i).Interface())
+	}
+	returnType.Default = defaults
+
 	return returnType
 }
 
@@ -214,5 +220,6 @@ func reflectInterface(definitions Definitions, t reflect.Type, v reflect.Value) 
 	return &Type{
 		Type:                 tTypeObject,
 		AdditionalProperties: []byte("true"),
+		Default:              v.Interface(),
 	}
 }
