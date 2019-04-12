@@ -122,7 +122,10 @@ func reflectStruct(definitions Definitions, v reflect.Value) *Type {
 
 		// embedded field
 		if structField.Anonymous {
-			typ := reflectStruct(definitions, structValue)
+			typ := reflectType(definitions, structField.Type, structValue, false)
+			if typ.Type != tTypeObject && v.NumField() == 1 {
+				return typ
+			}
 			for def, info := range typ.Definitions {
 				definitions[def] = info
 			}
@@ -130,6 +133,7 @@ func reflectStruct(definitions Definitions, v reflect.Value) *Type {
 			for def, info := range typ.Properties {
 				currentType.Properties[def] = info
 			}
+			continue
 		}
 
 		tags := parseTags(structField.Tag)

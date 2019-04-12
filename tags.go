@@ -128,7 +128,9 @@ func applyValidation(dst *Type, t tags) {
 	case tTypeString:
 		dst.MinLength = t.minLength
 		dst.MaxLength = t.maxLength
-		dst.Format = t.format
+		if t.format != "" {
+			dst.Format = t.format
+		}
 	case tTypeNumber:
 		dst.MultipleOf = t.multipleOf
 		dst.Minimum = t.minimum

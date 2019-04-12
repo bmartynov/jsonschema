@@ -83,11 +83,14 @@ func reflectEnum(definition Definitions, v reflect.Value) *Type {
 
 	vType := reflectType(definition, variantTypeOf, variantValueOf, false)
 
-	return &Type{
+	typ := &Type{
 		Type:    vType.Type,
 		Enum:    variants,
-		Default: v.Interface(),
 	}
+
+	handleDefaultValue(typ, v)
+
+	return typ
 }
 
 func reflectOneOf(definition Definitions, v reflect.Value) *Type {
@@ -101,11 +104,14 @@ func reflectOneOf(definition Definitions, v reflect.Value) *Type {
 			reflect.ValueOf(variant), false)
 	}
 
-	return &Type{
+	typ := &Type{
 		Type:    oneOf[0].Type,
 		OneOf:   oneOf,
-		Default: v.Interface(),
 	}
+
+	handleDefaultValue(typ, v)
+
+	return typ
 }
 
 func reflectAnyOf(definition Definitions, v reflect.Value) *Type {
@@ -119,11 +125,14 @@ func reflectAnyOf(definition Definitions, v reflect.Value) *Type {
 			reflect.ValueOf(variant), false)
 	}
 
-	return &Type{
+	typ := &Type{
 		Type:    anyOf[0].Type,
 		AnyOf:   anyOf,
-		Default: v.Interface(),
 	}
+
+	handleDefaultValue(typ, v)
+
+	return typ
 }
 
 func reflectAllOf(definition Definitions, v reflect.Value) *Type {
@@ -137,11 +146,14 @@ func reflectAllOf(definition Definitions, v reflect.Value) *Type {
 			reflect.ValueOf(variant), false)
 	}
 
-	return &Type{
+	typ := &Type{
 		Type:    allOf[0].Type,
 		AllOf:   allOf,
-		Default: v.Interface(),
 	}
+
+	handleDefaultValue(typ, v)
+
+	return typ
 }
 
 func reflectSlice(definition Definitions, v reflect.Value) *Type {
@@ -189,37 +201,58 @@ func reflectMap(definitions Definitions, v reflect.Value) *Type {
 }
 
 func reflectInteger(definitions Definitions, v reflect.Value) *Type {
-	return &Type{
+	typ := &Type{
 		Type:    tTypeInteger,
-		Default: v.Interface(),
 	}
+
+	handleDefaultValue(typ, v)
+
+	return typ
 }
 
 func reflectNumber(definitions Definitions, v reflect.Value) *Type {
-	return &Type{
-		Type:    tTypeNumber,
-		Default: v.Interface(),
+	typ := &Type{
+		Type: tTypeNumber,
 	}
+
+	handleDefaultValue(typ, v)
+
+	return typ
 }
 
 func reflectBool(definitions Definitions, v reflect.Value) *Type {
-	return &Type{
-		Type:    tTypeBoolean,
-		Default: v.Interface(),
+	typ := &Type{
+		Type: tTypeBoolean,
 	}
+
+	handleDefaultValue(typ, v)
+
+	return typ
 }
 
 func reflectString(definitions Definitions, v reflect.Value) *Type {
-	return &Type{
-		Type:    tTypeString,
-		Default: v.Interface(),
+	typ := &Type{
+		Type: tTypeString,
 	}
+
+	handleDefaultValue(typ, v)
+
+	return typ
 }
 
 func reflectInterface(definitions Definitions, t reflect.Type, v reflect.Value) *Type {
-	return &Type{
+	typ := &Type{
 		Type:                 tTypeObject,
 		AdditionalProperties: []byte("true"),
-		Default:              v.Interface(),
+	}
+
+	handleDefaultValue(typ, v)
+
+	return typ
+}
+
+func handleDefaultValue(dst *Type, v reflect.Value) {
+	if v.IsValid() {
+		dst.Default = v.Interface()
 	}
 }
