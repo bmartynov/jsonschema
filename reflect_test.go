@@ -97,6 +97,33 @@ type TestUser struct {
 	Enum    enumImpl          `json:"enum"`
 }
 
+type String string
+
+type ColorPicker struct {
+	String
+}
+
+type SomeStruct struct {
+	ColorPicker ColorPicker `json:"colorPicker"`
+	TextArea    TextArea    `json:"textArea"`
+}
+
+type TextArea struct {
+	String
+}
+
+func TestEmbeddedTypes(t *testing.T) {
+	schema := Reflect(SomeStruct{})
+
+	assert.NotNil(t, schema.Definitions["ColorPicker"])
+	assert.Equal(t, tTypeString, schema.Definitions["ColorPicker"].Type)
+	assert.Equal(t, String(""), schema.Definitions["ColorPicker"].Default)
+
+	assert.NotNil(t, schema.Definitions["TextArea"])
+	assert.Equal(t, tTypeString, schema.Definitions["TextArea"].Type)
+	assert.Equal(t, String(""), schema.Definitions["TextArea"].Default)
+}
+
 func TestReflect(t *testing.T) {
 	t.Run("ReflectStruct_returns_CorrectType", func(t *testing.T) {
 		a := assert.New(t)

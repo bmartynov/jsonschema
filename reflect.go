@@ -116,12 +116,12 @@ func reflectStruct(definitions Definitions, v reflect.Value) *Type {
 		structValue := v.Field(i)
 
 		// unexported field
-		if structField.PkgPath != "" {
+		if isUnexported(structField) {
 			continue
 		}
 
 		// embedded field
-		if structField.Anonymous {
+		if isAnonymous(structField) {
 			typ := reflectType(definitions, structField.Type, structValue, false)
 			if typ.Type != tTypeObject && v.NumField() == 1 {
 				return typ
@@ -137,7 +137,7 @@ func reflectStruct(definitions Definitions, v reflect.Value) *Type {
 		}
 
 		tags := parseTags(structField.Tag)
-		if tags.name == "" || tags.ignored {
+		if isIgnored(tags) {
 			continue
 		}
 
@@ -153,4 +153,12 @@ func reflectStruct(definitions Definitions, v reflect.Value) *Type {
 	}
 
 	return currentType
+}
+
+func isUnexported(field reflect.StructField) bool {
+	return field.PkgPath != ""
+}
+
+func isAnonymous(field reflect.StructField) bool {
+	return field.Anonymous
 }

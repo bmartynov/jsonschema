@@ -84,8 +84,8 @@ func reflectEnum(definition Definitions, v reflect.Value) *Type {
 	vType := reflectType(definition, variantTypeOf, variantValueOf, false)
 
 	typ := &Type{
-		Type:    vType.Type,
-		Enum:    variants,
+		Type: vType.Type,
+		Enum: variants,
 	}
 
 	handleDefaultValue(typ, v)
@@ -105,8 +105,8 @@ func reflectOneOf(definition Definitions, v reflect.Value) *Type {
 	}
 
 	typ := &Type{
-		Type:    oneOf[0].Type,
-		OneOf:   oneOf,
+		Type:  oneOf[0].Type,
+		OneOf: oneOf,
 	}
 
 	handleDefaultValue(typ, v)
@@ -126,8 +126,8 @@ func reflectAnyOf(definition Definitions, v reflect.Value) *Type {
 	}
 
 	typ := &Type{
-		Type:    anyOf[0].Type,
-		AnyOf:   anyOf,
+		Type:  anyOf[0].Type,
+		AnyOf: anyOf,
 	}
 
 	handleDefaultValue(typ, v)
@@ -147,13 +147,21 @@ func reflectAllOf(definition Definitions, v reflect.Value) *Type {
 	}
 
 	typ := &Type{
-		Type:    allOf[0].Type,
-		AllOf:   allOf,
+		Type:  allOf[0].Type,
+		AllOf: allOf,
 	}
 
 	handleDefaultValue(typ, v)
 
 	return typ
+}
+
+func getSliceValue(v reflect.Value) reflect.Value {
+	if v.Len() > 0 {
+		return v.Index(0)
+	}
+
+	return reflect.New(v.Type().Elem())
 }
 
 func reflectSlice(definition Definitions, v reflect.Value) *Type {
@@ -181,7 +189,6 @@ func reflectSlice(definition Definitions, v reflect.Value) *Type {
 	for i := 0; i < v.Len(); i++ {
 		defaults = append(defaults, v.Index(i).Interface())
 	}
-	returnType.Default = defaults
 
 	return returnType
 }
@@ -202,7 +209,7 @@ func reflectMap(definitions Definitions, v reflect.Value) *Type {
 
 func reflectInteger(definitions Definitions, v reflect.Value) *Type {
 	typ := &Type{
-		Type:    tTypeInteger,
+		Type: tTypeInteger,
 	}
 
 	handleDefaultValue(typ, v)

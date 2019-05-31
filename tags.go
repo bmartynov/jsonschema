@@ -147,3 +147,7 @@ func applyValidation(dst *Type, t tags) {
 func applyInfo(dst *Type, t tags) {
 	dst.Title = t.title
 }
+
+func isIgnored(t tags) bool {
+	return t.name == "" || t.ignored
+}
